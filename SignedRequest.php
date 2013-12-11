@@ -1,15 +1,15 @@
 <?php
-class SignedRequest {
+class SignedRequest
+{
 	private static $_default_secret = 'sxtytuyuhiyf46576798y8g6ftuvy';
-	public static function encode(
-		$data, array $args = array()
-	) {
+	public static function encode($data, array $args = array())
+	{
 		// init variables
 		$arg_method    = false;
-		$arg_timout    = false;
+		$arg_timeout   = false;
 		$arg_algorithm = 'HMAC-SHA256';
 		$arg_secret    = self::$_default_secret;
-		extract($args, EXTR_OVERWRITE, 'arg');
+		extract($args, EXTR_PREFIX_ALL, 'arg');
 		
 		// building data array for signed request
 		$data_wrapper = array(
@@ -23,8 +23,8 @@ class SignedRequest {
 		}
 		
 		// checking for timeout
-		if ($arg_timout !== false) {
-			$data_wrapper['expires'] = time() + $arg_timout; 
+		if ($arg_timeout !== false) {
+			$data_wrapper['expires'] = time() + $arg_timeout; 
 		}
 		
 		// building encoded data
@@ -43,15 +43,14 @@ class SignedRequest {
 		return $signature.'.'.$payload;
 	}
 	
-	public static function decode(
-		$signedrequest, array $args = array()
-	) {
+	public static function decode($signedrequest, array $args = array())
+	{
 		// arguments
 		$arg_raw       = false;
 		$arg_method    = false;
 		$arg_algorithm = 'HMAC-SHA256';
 		$arg_secret    = self::$_default_secret;
-		extract($args, EXTR_OVERWRITE, 'arg');
+		extract($args, EXTR_PREFIX_ALL, 'arg');
 		
 		// separating the signature from the payload
 		$parts = explode('.', $signedrequest);
@@ -96,12 +95,11 @@ class SignedRequest {
 		}
 		
 		// returning the data
-		if ($raw) {
+		if ($arg_raw) {
 			return $wrapped_data;
 		}
 		return $wrapped_data['data'];
 	}
-	
 	private static function _base64URLEncode($data) 
 	{ 
 		return rtrim(strtr(base64_encode($data), '+/', '-_'), '='); 
