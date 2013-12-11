@@ -5,16 +5,16 @@ class SignedRequest
 	public static function encode($data, array $args = array())
 	{
 		// init variables
+		$algorithm = 'HMAC-SHA256';
 		$arg_method    = false;
 		$arg_timeout   = false;
-		$arg_algorithm = 'HMAC-SHA256';
 		$arg_secret    = self::$_default_secret;
 		extract($args, EXTR_PREFIX_ALL, 'arg');
 		
 		// building data array for signed request
 		$data_wrapper = array(
 			'data'      => $data,
-			'algorithm' => $arg_algorithm
+			'algorithm' => $algorithm
 		);
 		
 		// checking for method
@@ -46,9 +46,9 @@ class SignedRequest
 	public static function decode($signedrequest, array $args = array())
 	{
 		// arguments
+		$algorithm = 'HMAC-SHA256';
 		$arg_raw       = false;
 		$arg_method    = false;
-		$arg_algorithm = 'HMAC-SHA256';
 		$arg_secret    = self::$_default_secret;
 		extract($args, EXTR_PREFIX_ALL, 'arg');
 		
@@ -68,8 +68,8 @@ class SignedRequest
 		$wrapped_data = json_decode($json_encoded_data, true);
 		
 		// checking algorithm
-		if (!isset($wrapped_data['algorithm']) || $wrapped_data['algorithm'] !== $arg_algorithm) {
-			throw new Exception('Algorithm does not match.');
+		if (!isset($wrapped_data['algorithm']) || $wrapped_data['algorithm'] !== $algorithm) {
+			throw new Exception('Algorithm is not supported, HMAC-SHA256 expected.');
 		}
 		
 		// checking the signature
