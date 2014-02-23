@@ -5,17 +5,33 @@ class SignedRequest
 	public static function encode($data, array $args = array())
 	{
 		// init variables
-		$algorithm = 'HMAC-SHA256';
-		$arg_method    = false;
-		$arg_timeout   = false;
-		$arg_secret    = self::$_default_secret;
+		$arg_algorithm     = 'HMAC-SHA256';
+		$arg_method        = false;
+		$arg_timeout       = false;
+		$arg_expires       = false;
+		$arg_issued_time   = false;
+		$arg_secret        = self::$_default_secret;
 		extract($args, EXTR_PREFIX_ALL, 'arg');
+		
+		// checking if algorithm is supported
+		if (!in_array($arg_algorithm, self::getAlgorithms())) {
+			throw new Exception('Algorithm is not supported.', 10);
+		}
+		
+		// getting hash algorithm
+		$parts     = explode('-', $arg_algorithm);
+		$algorithm = strtolower($parts[1]);
 		
 		// building data array for signed request
 		$data_wrapper = array(
 			'data'      => $data,
-			'algorithm' => $algorithm
+			'algorithm' => $arg_algorithm
 		);
+		
+		// checking if they want created time
+		if ($arg_issued_time === true) {
+			$data_wrapper['issued_at'] = time();
+		}
 		
 		// checking for method
 		if ($arg_method !== false) {
@@ -24,14 +40,27 @@ class SignedRequest
 		
 		// checking for timeout
 		if ($arg_timeout !== false) {
+			if (!is_numeric($arg_timeout)) {
+				throw new Exception('Invalid timeout, must be numeric', 11);
+			}
 			$data_wrapper['expires'] = time() + $arg_timeout; 
+		}
+		
+		// checking for specific expiration date
+		if ($arg_expires !== false) {
+			if (!is_numeric($arg_expires)) {
+				throw new Exception('Invalid expire time, must be numeric', 12);
+			}
+			if (!isset($data_wrapper['expires']) || $arg_expires < $data_wrapper['expires']) {
+				$data_wrapper['expires'] = $arg_expires;
+			}
 		}
 		
 		// building encoded data
 		$json_encoded_data = json_encode($data_wrapper);
 		
 		// json encoded data
-		$hash = hash_hmac('sha256', $json_encoded_data, $arg_secret, true);
+		$hash = hash_hmac($algorithm, $json_encoded_data, $arg_secret, true);
 		
 		// building signature
 		$signature = self::_base64URLEncode($hash);
@@ -46,7 +75,6 @@ class SignedRequest
 	public static function decode($signedrequest, array $args = array())
 	{
 		// arguments
-		$algorithm = 'HMAC-SHA256';
 		$arg_raw       = false;
 		$arg_method    = false;
 		$arg_secret    = self::$_default_secret;
@@ -68,14 +96,18 @@ class SignedRequest
 		$wrapped_data = json_decode($json_encoded_data, true);
 		
 		// checking algorithm
-		if (!isset($wrapped_data['algorithm']) || $wrapped_data['algorithm'] !== $algorithm) {
-			throw new Exception('Algorithm is not supported, HMAC-SHA256 expected.');
+		if (!isset($wrapped_data['algorithm']) || !in_array($wrapped_data['algorithm'], self::getAlgorithms())) {
+			throw new Exception('Algorithm is not supported.');
 		}
 		
+		// getting hash algorithm
+		$parts     = explode('-', $wrapped_data['algorithm']);
+		$algorithm = strtolower($parts[1]);
+		
 		// checking the signature
-		$expected_signature = hash_hmac('sha256', $json_encoded_data, $arg_secret, true);
+		$expected_signature = hash_hmac($algorithm, $json_encoded_data, $arg_secret, true);
 		if ($signature !== $expected_signature) {
-			throw new Exception('Signature does not match the data');
+			throw new Exception('Signature does not match the data.');
 		}
 		
 		// checking method
@@ -106,6 +138,15 @@ class SignedRequest
 	}
 	private static function _base64URLDecode($data) { 
 		return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+	}
+	public static function getAlgorithms()
+	{
+		// creating full list of supported algorithms
+		$algos = hash_algos();
+		foreach ($algos as &$algo) {
+			$algo = 'HMAC-'.strtoupper($algo);
+		}
+		return $algos;
 	}
 }
 ?>

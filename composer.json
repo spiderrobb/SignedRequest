@@ -1,0 +1,21 @@
+{
+	"name": "spiderrobb/SignedRequest",
+	"description": "Simple Class for encoding and decoding SignedRequests that support a number of features and hash algorithms",
+	"keywords": ["signedrequest"],
+	"authors": [
+		{
+			"name": "Robbin Harris",
+			"email": "spiderrobb+git@gmail.com",
+			"role": "Developer"
+		}
+	],
+	"autoload": {
+		"files": ["./src/SignedRequest.php"]
+	},
+	"support": {
+		"source": "https://github.com/spiderrobb/SignedRequest",
+		"issues": "https://github.com/spiderrobb/SignedRequest/issues",
+		"wiki": "https://github.com/spiderrobb/SignedRequest/wiki"
+	},
+	"license": "MIT"
+}
