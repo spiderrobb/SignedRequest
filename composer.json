@@ -1,7 +1,7 @@
 {
 	"name": "spiderrobb/signed-request",
 	"description": "Simple Class for encoding and decoding SignedRequests that support a number of features and hash algorithms",
-	"keywords": ["signedrequest"],
+	"keywords": ["api", "request", "secret", "signed", "signed-request", "signedrequest", "SignedRequest", "signed_request"],
 	"authors": [
 		{
 			"name": "Robbin Harris",
