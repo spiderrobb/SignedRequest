@@ -10,12 +10,13 @@
 		}
 	],
 	"autoload": {
-		"files": ["./src/SignedRequest.php"]
+		"classmap": ["src"]
 	},
 	"support": {
 		"source": "https://github.com/spiderrobb/SignedRequest",
 		"issues": "https://github.com/spiderrobb/SignedRequest/issues",
 		"wiki": "https://github.com/spiderrobb/SignedRequest/wiki"
 	},
-	"license": "MIT"
+	"license": "MIT",
+	"version": "1.0.0"
 }
