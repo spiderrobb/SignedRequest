@@ -1,5 +1,5 @@
 {
-	"name": "spiderrobb/SignedRequest",
+	"name": "spiderrobb/signed-request",
 	"description": "Simple Class for encoding and decoding SignedRequests that support a number of features and hash algorithms",
 	"keywords": ["signedrequest"],
 	"authors": [
