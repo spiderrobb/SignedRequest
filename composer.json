@@ -9,6 +9,10 @@
 			"role": "Developer"
 		}
 	],
+	"require": {
+		"php": ">=5.2.0",
+		"ext-json": "*"
+	},
 	"autoload": {
 		"classmap": ["src"]
 	},
