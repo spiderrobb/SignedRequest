@@ -14,7 +14,9 @@
 		"ext-json": "*"
 	},
 	"autoload": {
-		"classmap": ["src"]
+		"psr-4": {
+			"SpiderRobb\\" : "src/"
+		}
 	},
 	"support": {
 		"source": "https://github.com/spiderrobb/SignedRequest",
