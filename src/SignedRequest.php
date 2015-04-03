@@ -27,6 +27,18 @@ class SignedRequest
 	private static $_default_secret = 'sxtytuyuhiyf46576798y8g6ftuvy';
 
 	/**
+	 * this function allows you to specify your own default secret
+	 *
+	 * @param string $default default secret to use
+	 *
+	 * @return void
+	 */
+	public static function setDefaultSecret($default)
+	{
+		self::$_default_secret = $default;
+	}
+
+	/**
 	 * this function can encode any data into a signedrequest
 	 *
 	 * @param mixed $data data you wish to wrap in a signed request
