@@ -5,7 +5,7 @@
  *
  * PHP 5
  *
- * @author Robbin Harris <robb@robbinharris.com>
+ * @author Robbin Harris <spiderrobb+git@gmail.com>
  */
 namespace Spiderrobb;
 
@@ -17,7 +17,7 @@ namespace Spiderrobb;
  *        OR
  *        $data = SignedRequest::decode($sr, $args);
  *
- * @author Robbin Harris <robb@robbinharris.com>
+ * @author Robbin Harris <spiderrobb+git@gmail.com>
  */
 class SignedRequest
 {
