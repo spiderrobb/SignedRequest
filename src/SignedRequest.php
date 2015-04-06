@@ -7,7 +7,9 @@
  *
  * @author Robbin Harris <spiderrobb+git@gmail.com>
  */
-namespace Spiderrobb;
+namespace SpiderRobb;
+
+use Exception;
 
 /**
  * The SignedRequest class can be used to encode and decode
