@@ -13,9 +13,19 @@
 		"php": ">=5.2.0",
 		"ext-json": "*"
 	},
+	"require-dev": {
+        "phpunit/phpunit" : "~4.0"
+    },
 	"autoload": {
-		"classmap": ["src"]
+		"psr-4": {
+			"SpiderRobb\\" : "src/"
+		}
 	},
+	"autoload-dev": {
+        "psr-4": {
+            "SpiderRobb\\Test\\": "test/"
+        }
+    },
 	"support": {
 		"source": "https://github.com/spiderrobb/SignedRequest",
 		"issues": "https://github.com/spiderrobb/SignedRequest/issues",
