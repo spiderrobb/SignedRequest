@@ -10,6 +10,9 @@
 namespace SpiderRobb;
 
 use Exception;
+use RuntimeException;
+use DomainException;
+use InvalidArgumentException;
 
 /**
  * The SignedRequest class can be used to encode and decode
@@ -61,22 +64,16 @@ class SignedRequest
 	public static function encode($data, array $args = array())
 	{
 		// init variables
-		$arg_algorithm     = 'HMAC-SHA256';
-		$arg_method        = false;
-		$arg_timeout       = false;
-		$arg_expires       = false;
-		$arg_issued_time   = false;
-		$arg_secret        = self::$_default_secret;
+		$arg_algorithm = 'HMAC-SHA256';
+		$arg_method    = false;
+		$arg_timeout   = false;
+		$arg_expires   = false;
+		$arg_issued_at = false;
+		$arg_secret    = self::$_default_secret;
 		extract($args, EXTR_PREFIX_ALL, 'arg');
 		
-		// checking if algorithm is supported
-		if (!in_array($arg_algorithm, self::getAlgorithms())) {
-			throw new Exception('Algorithm is not supported.', 10);
-		}
-		
 		// getting hash algorithm
-		$parts     = explode('-', $arg_algorithm);
-		$algorithm = strtolower($parts[1]);
+		$algorithm = strtolower(str_replace('HMAC-', '', $arg_algorithm));
 		
 		// building data array for signed request
 		$data_wrapper = array(
@@ -85,8 +82,10 @@ class SignedRequest
 		);
 		
 		// checking if they want created time
-		if ($arg_issued_time === true) {
+		if ($arg_issued_at === true) {
 			$data_wrapper['issued_at'] = time();
+		} else if ($arg_issued_at !== false) {
+			$data_wrapper['issued_at'] = $arg_issued_at;
 		}
 		
 		// checking for method
@@ -96,16 +95,16 @@ class SignedRequest
 		
 		// checking for timeout
 		if ($arg_timeout !== false) {
-			if (!is_numeric($arg_timeout)) {
-				throw new Exception('Invalid timeout, must be numeric', 11);
+			if (!is_numeric($arg_timeout) || $arg_timeout <= 0) {
+				throw new InvalidArgumentException('Invalid timeout, must be numeric', 100);
 			}
 			$data_wrapper['expires'] = time() + $arg_timeout; 
 		}
 		
 		// checking for specific expiration date
 		if ($arg_expires !== false) {
-			if (!is_numeric($arg_expires)) {
-				throw new Exception('Invalid expire time, must be numeric', 12);
+			if (!is_numeric($arg_expires) || time() >= $arg_expires) {
+				throw new InvalidArgumentException('Invalid expire time, must be numeric', 101);
 			}
 			if (!isset($data_wrapper['expires']) || $arg_expires < $data_wrapper['expires']) {
 				$data_wrapper['expires'] = $arg_expires;
@@ -114,9 +113,20 @@ class SignedRequest
 		
 		// building encoded data
 		$json_encoded_data = json_encode($data_wrapper);
+		if ($json_encoded_data === false) {
+			throw new RuntimeException('Unknown Error Json Encoding a php array.', 102);
+		}
 		
 		// json encoded data
-		$hash = hash_hmac($algorithm, $json_encoded_data, $arg_secret, true);
+		try {
+			$hash = hash_hmac($algorithm, $json_encoded_data, $arg_secret, true);
+			$e    = null;
+		} catch (Exception $e) {
+			$hash = false;
+		}
+		if ($hash === false) {
+			throw new DomainException('Algorithm is not supported.', 103, $e);
+		}
 		
 		// building signature
 		$signature = self::_base64URLEncode($hash);
@@ -133,21 +143,23 @@ class SignedRequest
 	 *
 	 * @param string $signedrequest signed request in form signature.payload
 	 * @param array  $args          array of args or optional options
-	 *                              [raw]    if true the entire signed request payload is returned
-	 *                                       this is useful when decoding signed requests not generated
-	 *                                       with this class
-	 *                              [method] method passed to encode function
-	 *                              [secret] sam secret used to encode the data
-	 *                                       if not specified class default will be used
+	 *                              [raw]        if true the entire signed request payload is returned
+	 *                                           this is useful when decoding signed requests not generated
+	 *                                           with this class
+	 *                              [method]     method passed to encode function
+	 *                              [secret]     sam secret used to encode the data
+	 *                                           if not specified class default will be used
+	 *                              [allow_null]
 	 * 
 	 * @return mixed
 	 */
 	public static function decode($signedrequest, array $args = array())
 	{
 		// arguments
-		$arg_raw       = false;
-		$arg_method    = false;
-		$arg_secret    = self::$_default_secret;
+		$arg_raw        = false;
+		$arg_method     = false;
+		$arg_allow_null = false;
+		$arg_secret     = self::$_default_secret;
 		extract($args, EXTR_PREFIX_ALL, 'arg');
 		
 		// separating the signature from the payload
@@ -155,7 +167,7 @@ class SignedRequest
 		
 		// checking if we have the correct number of parts
 		if (count($parts) !== 2) {
-			throw new Exception('Invalid Signed Request format.');
+			throw new InvalidArgumentException('Invalid Signed Request format.', 200);
 		}
 		
 		// getting signature and payload
@@ -164,10 +176,8 @@ class SignedRequest
 		
 		// getting raw wrapped data
 		$wrapped_data = json_decode($json_encoded_data, true);
-		
-		// checking algorithm
-		if (!isset($wrapped_data['algorithm']) || !in_array($wrapped_data['algorithm'], self::getAlgorithms())) {
-			throw new Exception('Algorithm is not supported.');
+		if (!$arg_allow_null && $wrapped_data === null) {
+			throw new RuntimeException('Could not json decode payload.', 201);
 		}
 		
 		// getting hash algorithm
@@ -176,24 +186,27 @@ class SignedRequest
 		
 		// checking the signature
 		$expected_signature = hash_hmac($algorithm, $json_encoded_data, $arg_secret, true);
+		if ($expected_signature === false) {
+			throw new DomainException('Algorithm is not supported.', 202);
+		}
 		if ($signature !== $expected_signature) {
-			throw new Exception('Signature does not match the data.');
+			throw new RuntimeException('Signature does not match the data.', 203);
 		}
 		
 		// checking method
 		if (isset($wrapped_data['method']) && $arg_method === false) {
-			throw new Exception('This Signed Request requires a method.');
+			throw new RuntimeException('This Signed Request requires a method.', 204);
 		}
 		if (!isset($wrapped_data['method']) && $arg_method !== false) {
-			throw new Exception('This Signed Request does not require a method.');
+			throw new RuntimeException('This Signed Request does not require a method.', 205);
 		}
 		if (isset($wrapped_data['method']) && $arg_method !== $wrapped_data['method']) {
-			throw new Exception('This Signed Request does not match the given method.');
+			throw new RuntimeException('This Signed Request does not match the given method.', 206);
 		}
 		
 		// checking expiration of signed request
 		if (isset($wrapped_data['expires']) && $wrapped_data['expires'] < time()) {
-			throw new Exception('This Signed Request has expired.');
+			throw new RuntimeException('This Signed Request has expired.', 207);
 		}
 		
 		// returning the data
