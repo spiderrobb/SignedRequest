@@ -1,5 +1,6 @@
 SignedRequest (v.1.0.0)
 =======================
+[![Build Status](https://travis-ci.org/spiderrobb/SignedRequest.svg?branch=master)](https://travis-ci.org/spiderrobb/SignedRequest)
 
 The SignedRequest class is an easy and feature rich way to encode and decode signed requests. Signed requests are used by companies such as Facebook, Kongregate, and Salesforce to pass data to 3rd party applications in a secure and reliable way.
 
