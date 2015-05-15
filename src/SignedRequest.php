@@ -184,8 +184,7 @@ class SignedRequest
 		}
 		
 		// getting hash algorithm
-		$alg_parts     = explode('-', $wrapped_data['algorithm']);
-		$algorithm = strtolower($alg_parts[1]);
+		$algorithm = strtolower(str_replace('HMAC-', '', $wrapped_data['algorithm']));
 		
 		// checking the signature
 		$expected_signature = hash_hmac($algorithm, $parts[1], $arg_secret, true);
