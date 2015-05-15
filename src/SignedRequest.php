@@ -115,14 +115,14 @@ class SignedRequest
 		// building encoded data
 		$json_encoded_data = json_encode($data_wrapper);
 		
+		// building encoded
+		$payload = self::_base64URLEncode($json_encoded_data);
+		
 		// json encoded data
-		$hash = hash_hmac($algorithm, $json_encoded_data, $arg_secret, true);
+		$hash = hash_hmac($algorithm, $payload, $arg_secret, true);
 		
 		// building signature
 		$signature = self::_base64URLEncode($hash);
-		
-		// building encoded
-		$payload = self::_base64URLEncode($json_encoded_data);
 		
 		// returning signed request
 		return $signature.'.'.$payload;
@@ -171,11 +171,11 @@ class SignedRequest
 		}
 		
 		// getting hash algorithm
-		$parts     = explode('-', $wrapped_data['algorithm']);
-		$algorithm = strtolower($parts[1]);
+		$alg_parts     = explode('-', $wrapped_data['algorithm']);
+		$algorithm = strtolower($alg_parts[1]);
 		
 		// checking the signature
-		$expected_signature = hash_hmac($algorithm, $json_encoded_data, $arg_secret, true);
+		$expected_signature = hash_hmac($algorithm, $parts[1], $arg_secret, true);
 		if ($signature !== $expected_signature) {
 			throw new Exception('Signature does not match the data.');
 		}
