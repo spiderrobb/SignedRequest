@@ -120,6 +120,9 @@ class SignedRequest
 		// building encoded
 		$payload = self::_base64URLEncode($json_encoded_data);
 		
+		// building encoded
+		$payload = self::_base64URLEncode($json_encoded_data);
+		
 		// json encoded data
 		try {
 			$hash = hash_hmac($algorithm, $payload, $arg_secret, true);
